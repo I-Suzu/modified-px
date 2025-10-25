@@ -325,7 +325,8 @@ def handle_exceptions(extype, value, tb):
 
 def main():
     multiprocessing.freeze_support()
-    multiprocessing.set_start_method("spawn")
+    if multiprocessing.get_start_method(allow_none=True) is None:
+        multiprocessing.set_start_method("spawn")
     sys.excepthook = handle_exceptions
 
     STATE.parse_config()

@@ -1,3 +1,7 @@
+v0.10.3 - TBD
+- Fixed #248 - check install cmd if modified
+- Fixed #255 - handle Python v3.13 runtime context on startup
+
 v0.10.2 - 2025-04-07
 - Fixed #246 - resolved crash caused by PAC hostname resolution
 - Added gui script `pxw.exe` to run Px in the background on Windows, addressing
