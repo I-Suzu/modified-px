@@ -1,6 +1,5 @@
 "Test Px"
 
-import difflib
 import multiprocessing
 import os
 import platform
@@ -10,14 +9,11 @@ import socket
 import subprocess
 import sys
 import time
-import uuid
 
 import psutil
 
-from px.config import get_host_ips
-from px.version import __version__
-
 import tools
+from px.config import get_host_ips
 
 COUNT = 0
 PROXY = ""
@@ -46,7 +42,7 @@ def exec(cmd, port=0, shell=True, delete=False):
         p = subprocess.run(cmd, shell=shell, stdout=l,
                            stderr=subprocess.STDOUT, check=False, timeout=60)
 
-    with open(log, "r") as l:
+    with open(log) as l:
         data = l.read()
 
     if delete:
@@ -171,7 +167,7 @@ def runTest(test, cmd, offset, port):
             retcode = subp.wait(0.5)
 
             if ret == True and retcode is None:
-                writeflush(port, f"Subprocess failed to exit\n")
+                writeflush(port, "Subprocess failed to exit\n")
                 ret = False
 
         time.sleep(0.5)
@@ -202,7 +198,7 @@ def checkPxStart(ip, port):
         try:
             socket.create_connection((ip, port), 1)
             break
-        except (socket.timeout, ConnectionRefusedError):
+        except (TimeoutError, ConnectionRefusedError):
             time.sleep(1)
             retry -= 1
             if retry == 0:
@@ -217,7 +213,7 @@ def getUnusedPort(port, step):
         try:
             socket.create_connection(("127.0.0.1", port), 1)
             port += step
-        except (socket.timeout, ConnectionRefusedError):
+        except (TimeoutError, ConnectionRefusedError):
             return port
 
 
@@ -273,7 +269,7 @@ def checkSocket(ips, port):
     def checkProc(lip, pport):
         try:
             socket.create_connection((lip, pport), 1)
-        except (socket.timeout, ConnectionRefusedError):
+        except (TimeoutError, ConnectionRefusedError):
             return False
 
         return True
@@ -315,7 +311,7 @@ def remoteTest(port, fail=False):
             lip, port)
     ret = subprocess.call(cmd, shell=True, stdout=DEVNULL, stderr=DEVNULL)
     if ret == 255:
-        writeflush(port, f"Skipping: Remote test - remote not up\n")
+        writeflush(port, "Skipping: Remote test - remote not up\n")
     else:
         writeflush(port, f"Checking: Remote: :{port}\n")
         if (ret == 0 and fail == False) or (ret != 0 and fail == True):
@@ -571,7 +567,7 @@ def auto():
         except TypeError:
             try:
                 os.makedirs(testdir)
-            except WindowsError:
+            except OSError:
                 pass
 
         os.chdir(testdir)

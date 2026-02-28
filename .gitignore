@@ -49,24 +49,45 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Px specific
+# Python
+__pycache__/
+*.pyc
+*.pyc.*
+*.pyo
+
+# Virtual environments
+.venv/
+
+# Build artifacts
 build/
 dist/
+*.egg-info
 px.build/
 px.dist*/
 pyinst*/
 wheel/
 mcurllib/
-debug-*
-*.pyc
-*.pyc.*
+
+# IDE
 .vscode
+.idea/
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.tox
+
+# Coverage
+.coverage
+coverage.xml
+
+# Px specific
+debug-*
 test-*/
-*.egg-info
 _*.stats
 *.dll
 *.log
 *.crt
 .env
-.tox
 uv.lock

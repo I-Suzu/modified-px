@@ -10,10 +10,9 @@ import threading
 import time
 import urllib.parse
 
-from .debug import pprint, dprint, Debug
-from .help import HELP
-
 from . import wproxy
+from .debug import Debug, dprint, pprint
+from .help import HELP
 
 if sys.platform == "win32":
     from . import windows
@@ -234,7 +233,7 @@ def quit(exit=True):
         try:
             socket.create_connection((listen, port), 1)
             break
-        except socket.timeout:
+        except TimeoutError:
             # Too busy?
             time.sleep(0.1)
             count += 1
@@ -303,7 +302,7 @@ def quit(exit=True):
             socket.create_connection((listen, port), 1)
             pprint(" Failed: Px still running")
             success = False
-        except (socket.timeout, ConnectionRefusedError):
+        except (TimeoutError, ConnectionRefusedError):
             pprint(" DONE")
     else:
         pprint(" Failed")
@@ -396,7 +395,7 @@ class State:
     def __new__(cls):
         "Create a singleton instance of State"
         if cls.instance is None:
-            cls.instance = super(State, cls).__new__(cls)
+            cls.instance = super().__new__(cls)
         return cls.instance
 
     def __init__(self):
@@ -671,7 +670,7 @@ class State:
         with open(self.ini, "w") as cfgfile:
             self.config.write(cfgfile)
         pprint("Saved config to " + self.ini + "\n")
-        with open(self.ini, "r") as cfgfile:
+        with open(self.ini) as cfgfile:
             sys.stdout.write(cfgfile.read())
 
         sys.exit(ERROR_SUCCESS)

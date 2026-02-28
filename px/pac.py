@@ -1,17 +1,17 @@
-"PAC file support using quickjs"
+"PAC file support using quickjs-ng"
 
 import socket
 import sys
 import threading
 
-from .pacutils import PACUTILS
-
 import mcurl
+
+from .pacutils import PACUTILS
 
 try:
     import quickjs
 except ImportError:
-    print("Requires module quickjs")
+    print("Requires module quickjs-ng")
     sys.exit(1)
 
 
@@ -21,7 +21,7 @@ def dprint(_):
 
 
 class Pac:
-    "Load and run PAC files using quickjs"
+    "Load and run PAC files using quickjs-ng"
 
     _lock = None
 
@@ -52,7 +52,7 @@ class Pac:
         "Load PAC data in a quickjs Function"
         try:
             text = pac_data.decode(self.pac_encoding)
-        except UnicodeDecodeError as exc:
+        except UnicodeDecodeError:
             dprint(f"PAC file not encoded in {self.pac_encoding}")
             dprint("Use --pac_encoding or proxy:pac_encoding in px.ini to change")
             return
@@ -65,7 +65,7 @@ class Pac:
             # Load Python callables
             for func in [self.alert, self.dnsResolve, self.myIpAddress]:
                 self.pac_find_proxy_for_url.add_callable(func.__name__, func)
-        except quickjs.JSException as exc:
+        except quickjs.JSException:
             dprint("PAC file parsing error")
             return
 

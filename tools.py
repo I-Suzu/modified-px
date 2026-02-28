@@ -249,7 +249,7 @@ def pyinstaller():
 
     os.system(
         "pyinstaller --clean --noupx -w px.py --collect-submodules win32ctypes")
-    copy("px.ini HISTORY.txt LICENSE.txt README.md", "dist")
+    copy("px.ini LICENSE.txt README.md", "dist")
 
     time.sleep(1)
     os.remove("px.spec")
@@ -271,7 +271,7 @@ def nuitka():
               " -m nuitka --standalone %s --prefer-source-code --output-dir=%s px.py" % (flags, outdir))
 
     # Copy files
-    copy("px.ini HISTORY.txt LICENSE.txt README.md", dist)
+    copy("px.ini LICENSE.txt README.md", dist)
     if sys.platform != "win32":
         # Copy cacert.pem to dist/mcurl/.
         cacert = os.path.join(os.path.dirname(mcurl.__file__), "cacert.pem")
@@ -398,7 +398,7 @@ def embed():
     pth = glob.glob(os.path.join(dist, "*._pth"))[0]
 
     # Update ._pth file
-    with open(pth, "r") as f:
+    with open(pth) as f:
         data = f.read()
     if "Lib" not in data:
         with open(pth, "w") as f:
@@ -451,7 +451,7 @@ def embed():
             f.write(dataout)
 
     # Copy data files
-    copy("px.ini HISTORY.txt LICENSE.txt README.md", dist)
+    copy("px.ini LICENSE.txt README.md", dist)
 
     # Delete Scripts directory
     rmtree(os.path.join(dist, "Scripts"))
@@ -700,10 +700,16 @@ def delete_tag_by_name(tag):
 
 
 def get_history():
-    h = open("HISTORY.txt", "r").read().split("\n\n")[0]
-    h = h[h.find("\n")+1:]
-
-    return h
+    h = open("docs/changelog.md").read()
+    # Get first version section (between first and second "## v")
+    sections = h.split("\n## v")
+    if len(sections) > 1:
+        h = sections[1]
+        h = h[h.find("\n")+1:]
+        # Stop at next --- separator
+        if "\n---" in h:
+            h = h[:h.find("\n---")]
+    return h.strip()
 
 
 def create_release(tag, name, body, prerelease):

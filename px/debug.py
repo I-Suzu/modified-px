@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 
+
 # Print if possible
 def pprint(*objs):
     "Catch exception if print not possible while running in the background"
@@ -28,7 +29,7 @@ class Debug:
     def __new__(cls, name = "", mode = ""):
         "Create a singleton instance of Debug"
         if cls.instance is None:
-            cls.instance = super(Debug, cls).__new__(cls)
+            cls.instance = super().__new__(cls)
         return cls.instance
 
     def __init__(self, name = "", mode = ""):

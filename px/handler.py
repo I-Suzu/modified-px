@@ -5,28 +5,20 @@ import hashlib
 import html
 import http.server
 import os
-import socket
 import sys
 import time
-
-from .config import STATE, CLIENT_REALM
-from .debug import pprint, dprint
-
-from . import config
-from . import wproxy
 
 # External dependencies
 import keyring
 import mcurl
 
+from . import config, wproxy
+from .config import CLIENT_REALM, STATE
+from .debug import dprint, pprint
+
 try:
     import spnego._ntlm
-
-    from spnego._ntlm_raw.crypto import (
-        lmowfv1,
-        ntowfv1,
-        ntowfv2
-    )
+    from spnego._ntlm_raw.crypto import lmowfv1, ntowfv1, ntowfv2
 except ImportError:
     pprint("Requires module pyspnego")
     sys.exit(config.ERROR_IMPORT)
@@ -140,7 +132,7 @@ class PxHandler(http.server.BaseHTTPRequestHandler):
     def handle_one_request(self):
         try:
             http.server.BaseHTTPRequestHandler.handle_one_request(self)
-        except socket.error as error:
+        except OSError as error:
             self.close_connection = True
             easyhash = ""
             if self.curl is not None:

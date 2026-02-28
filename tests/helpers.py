@@ -38,7 +38,7 @@ def is_port_free(port):
     try:
         socket.create_connection(("127.0.0.1", port), 1)
         return False
-    except (socket.timeout, ConnectionRefusedError):
+    except (TimeoutError, ConnectionRefusedError):
         return True
 
 
@@ -52,7 +52,7 @@ def is_px_running(port):
         try:
             socket.create_connection(("127.0.0.1", port), 1)
             break
-        except (socket.timeout, ConnectionRefusedError):
+        except (TimeoutError, ConnectionRefusedError):
             time.sleep(1)
             retry -= 1
             assert retry != 0, f"Px didn't start @ 127.0.0.1:{port}"
@@ -92,7 +92,7 @@ def run_px(name, port, tmp_path_factory, flags, env=None):
     px_print_env(f"{name}: {cmd}", env)
 
     tmp_path = tmp_path_factory.mktemp(f"{name}-{port}")
-    buffer = open(f"{tmp_path}{os.sep}{name}-{port}.log", "w+t")
+    buffer = open(f"{tmp_path}{os.sep}{name}-{port}.log", "w+")
     subp = subprocess.Popen(
         cmd, shell=True, stdout=buffer, stderr=buffer, env=env, cwd=tmp_path
     )

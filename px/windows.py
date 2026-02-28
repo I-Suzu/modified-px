@@ -5,8 +5,8 @@ import os
 import sys
 import winreg
 
-from .debug import pprint, dprint
 from . import config
+from .debug import dprint, pprint
 
 try:
     import psutil

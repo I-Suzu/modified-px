@@ -12,7 +12,7 @@ except ImportError:
     print("Requires module netaddr")
     sys.exit(1)
 
-# PAC processing using quickjs
+# PAC processing using quickjs-ng
 from .pac import Pac
 
 # Proxy modes - source of proxy info

@@ -1,4 +1,3 @@
-import os
 
 from fixtures import *
 from helpers import *

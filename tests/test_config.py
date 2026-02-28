@@ -5,11 +5,10 @@ import subprocess
 import unittest.mock
 
 import pytest
-
-from px import config
-
 from fixtures import *
 from helpers import *
+
+from px import config
 
 
 @pytest.mark.parametrize("location, expected", [

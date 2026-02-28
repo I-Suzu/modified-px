@@ -3,7 +3,6 @@
 import concurrent.futures
 import multiprocessing
 import os
-import platform
 import signal
 import socket
 import socketserver
@@ -13,12 +12,10 @@ import time
 import traceback
 import warnings
 
+from . import config, handler
 from .config import STATE
-from .debug import pprint, dprint
+from .debug import dprint, pprint
 from .version import __version__
-
-from . import config
-from . import handler
 
 if sys.platform == "win32":
     from . import windows
@@ -209,7 +206,7 @@ def test(testurl):
             try:
                 socket.create_connection((listen, port), 1)
                 break
-            except (socket.timeout, ConnectionRefusedError):
+            except (TimeoutError, ConnectionRefusedError):
                 time.sleep(0.1)
                 count += 1
                 if count == 5:

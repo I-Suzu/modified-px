@@ -3,8 +3,6 @@ import os
 import sys
 
 import pytest
-import pytest_httpbin
-
 from helpers import *
 
 ##
