@@ -172,9 +172,14 @@ def get_host_ips():
     "Get IP addresses assigned to this host"
     localips = netaddr.IPSet([])
     addrs = psutil.net_if_addrs()
-    stats = psutil.net_if_stats()
+    try:
+        stats = psutil.net_if_stats()
+    except OSError:
+        # psutil.net_if_stats() can fail in emulated/virtualized environments
+        # (QEMU, Docker on ARM) - see https://github.com/giampaolo/psutil/issues/2693
+        stats = None
     for intf in addrs:
-        if stats[intf].isup:
+        if stats is None or (intf in stats and stats[intf].isup):
             for addr in addrs[intf]:
                 # IPv4 only for now
                 if addr.family in [socket.AF_INET]:  # , socket.AF_INET6]:
@@ -192,6 +197,7 @@ def file_url_to_local_path(file_url):
         return "C:" + path
     if len(path) > 2 and path[1] == ":":
         return path
+    return path
 
 
 def get_listen():
@@ -539,10 +545,10 @@ class State:
         for val in auth.split(","):
             val = val.strip().upper()
             if val == "ANY":
-                self.client_auth = AUTH_SUPPORTED
+                self.client_auth = list(AUTH_SUPPORTED)
                 return
             elif val == "ANYSAFE":
-                self.client_auth = AUTH_SUPPORTED
+                self.client_auth = list(AUTH_SUPPORTED)
                 self.client_auth.remove("BASIC")
                 return
             elif val == "NONE":
@@ -596,6 +602,7 @@ class State:
             val = int(val)
         except ValueError:
             pprint("Invalid integer value for " + section + ":" + name)
+            val = default
 
         self.config.set(section, name, str(val))
 
@@ -612,6 +619,7 @@ class State:
             val = float(val)
         except ValueError:
             pprint("Invalid float value for " + section + ":" + name)
+            val = default
 
         self.config.set(section, name, str(val))
 

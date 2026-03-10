@@ -7,7 +7,6 @@ import sys
 import time
 
 import keyring
-import psutil
 
 try:
     ConnectionRefusedError
@@ -42,63 +41,93 @@ def is_port_free(port):
         return True
 
 
-def is_px_running(port):
+def can_connect(ip, port, timeout=2):
+    """Check if a connection to ip:port succeeds."""
+    try:
+        s = socket.create_connection((ip, port), timeout)
+        s.close()
+        return True
+    except (TimeoutError, ConnectionRefusedError, OSError):
+        return False
+
+
+def find_free_port(start=4000):
+    """Find a free port starting from the given number."""
+    port = start
+    while port < start + 200:
+        if is_port_free(port):
+            return port
+        port += 1
+    return None
+
+
+def is_px_running(port, listen_ip="127.0.0.1"):
     # Make sure Px starts
     retry = 20
-    if sys.platform == "darwin" or platform.machine() == "aarch64":
-        # Nuitka builds take longer to start on Mac and aarch64
+    if sys.platform in ("darwin", "win32") or platform.machine() == "aarch64":
+        # Nuitka builds take longer to start on Mac, Windows and aarch64
         retry = 40
     while True:
         try:
-            socket.create_connection(("127.0.0.1", port), 1)
+            socket.create_connection((listen_ip, port), 1)
             break
         except (TimeoutError, ConnectionRefusedError):
             time.sleep(1)
             retry -= 1
-            assert retry != 0, f"Px didn't start @ 127.0.0.1:{port}"
+            assert retry != 0, f"Px didn't start @ {listen_ip}:{port}"
 
     return True
 
 
-def quit_px(name, subp, cmd):
-    if sys.platform == "linux" and platform.machine() == "aarch64":
-        # psutil.net_if_stats() is not supported on aarch64
-        # --hostonly and --quit don't work
-        proc = psutil.Process(subp.pid)
-        children = proc.children(recursive=True)
-        children.append(proc)
-        for child in children:
-            try:
-                child.kill()
-            except psutil.NoSuchProcess:
-                pass
-        gone, alive = psutil.wait_procs(children, timeout=10)
-    else:
-        cmd = cmd + " --quit"
-        print(f"{name} quit cmd: {cmd}\n")
-        ret = os.system(cmd)
-        assert ret == 0, f"Failed: Unable to --quit Px: {ret}"
-        print(f"{name} Px --quit succeeded")
+def quit_px(name, subp, cmd, strict=True):
+    """Stop a running Px instance.
 
-    # Check exit code
-    retcode = subp.wait()
-    assert retcode == 0, f"{name} Px exited with {retcode}"
+    If strict=True (default), asserts that --quit and exit succeed — use in
+    fixture teardown where quit must work.  If strict=False, falls back to
+    kill on failure — use in exception handlers / cleanup."""
+    quit_cmd = cmd + " --quit"
+    print(f"{name} quit cmd: {quit_cmd}\n")
+    # Retry --quit for slow CI environments (e.g. Windows)
+    ret = None
+    for _attempt in range(3):
+        ret = os.system(quit_cmd)
+        if ret == 0:
+            break
+        time.sleep(2)
+    if strict:
+        assert ret == 0, f"Failed: Unable to --quit Px: {ret}"
+    print(f"{name} Px --quit {'succeeded' if ret == 0 else 'failed'}")
+
+    # Wait for exit
+    if strict:
+        retcode = subp.wait()
+        assert retcode == 0, f"{name} Px exited with {retcode}"
+    else:
+        try:
+            subp.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            subp.kill()
+            subp.wait()
     print(f"{name} Px exited")
 
 
-def run_px(name, port, tmp_path_factory, flags, env=None):
+def run_px(name, port, tmp_path, flags="", env=None, listen_ip="127.0.0.1"):
+    """Start a Px instance and wait for it to be ready.
+
+    tmp_path can be a Path (function-scoped) or a tmp_path_factory
+    (session-scoped) — if it has mktemp(), a subdirectory is created."""
     cmd = f"px --debug --port={port} {flags}"
 
     px_print_env(f"{name}: {cmd}", env)
 
-    tmp_path = tmp_path_factory.mktemp(f"{name}-{port}")
-    buffer = open(f"{tmp_path}{os.sep}{name}-{port}.log", "w+")
-    subp = subprocess.Popen(cmd, shell=True, stdout=buffer, stderr=buffer, env=env, cwd=tmp_path)
+    if hasattr(tmp_path, "mktemp"):
+        tmp_path = tmp_path.mktemp(f"{name}-{port}")
+    logfile = open(f"{tmp_path}{os.sep}{name}-{port}.log", "w+")
+    subp = subprocess.Popen(cmd, shell=True, stdout=logfile, stderr=logfile, env=env, cwd=tmp_path)
 
-    assert is_px_running(port), f"{name} Px didn't start @ {port}"
-    time.sleep(0.5)
+    assert is_px_running(port, listen_ip), f"{name} Px didn't start @ {listen_ip}:{port}"
 
-    return subp, cmd, buffer
+    return subp, cmd, logfile
 
 
 def print_buffer(buffer):

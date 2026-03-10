@@ -44,10 +44,10 @@ All CI and release builds run via GitHub Actions. The workflows live in
 Runs on every push to `master` and `devel` branches and on pull requests.
 
 - **quality** — runs `make check` (pre-commit, ruff, mypy).
-- **tests** — runs `pytest` on ubuntu, macos, and windows across Python
-  3.10–3.14. Each Python version is tested independently. Uses the shared
-  `.github/actions/setup-python-env` action for consistent environment setup.
-  macOS excludes `test_network.py` due to GitHub Actions environment limitations.
+- **tests** — runs `pytest` on ubuntu, macos, and windows on Python 3.14.
+  Uses the shared `.github/actions/setup-python-env` action for consistent
+  environment setup. macOS excludes `test_network.py` due to GitHub Actions
+  environment limitations.
 
 ### Build (`build.yml`)
 

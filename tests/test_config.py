@@ -146,6 +146,7 @@ def generate_config():
         "gateway",
         "hostonly",
         "idle",
+        "listen",
         "log",
         "noproxy",
         "pac",
@@ -279,7 +280,11 @@ def _test_save(px_bin, pxini_location, monkeypatch, tmp_path):
     # Check values
     for name, value in values:
         if config.has_section("proxy") and config.has_option("proxy", name):
-            assert config.get("proxy", name) == str(value)
+            # listen gets overridden to empty when gateway or hostonly is set
+            if name == "listen":
+                assert config.get("proxy", name) == ""
+            else:
+                assert config.get("proxy", name) == str(value)
         elif config.has_section("client") and config.has_option("client", name):
             assert config.get("client", name) == str(value)
         elif config.has_section("settings") and config.has_option("settings", name):

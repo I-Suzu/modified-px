@@ -14,9 +14,6 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
-# IDE specific
-.idea/
-
 # Windows shortcuts
 *.lnk
 
@@ -64,8 +61,8 @@ dist/
 *.egg-info
 px.build/
 px.dist*/
-pyinst*/
 wheel/
+wheels/
 mcurllib/
 
 # IDE

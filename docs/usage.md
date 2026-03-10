@@ -189,4 +189,3 @@ Px depends on the following Python packages:
 
 - Mac socket sharing is not implemented at this time and is limited to running
   in a single process.
-- The `--hostonly` and `--quit` features do not work on Linux aarch64 systems.

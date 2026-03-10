@@ -86,7 +86,7 @@ python -m pip install .
 Px can be run as a local Python script without installation:
 
 ```bash
-pip install keyring netaddr psutil pymcurl pyspnego python-dotenv quickjs-ng
+pip install keyring keyrings.alt netaddr psutil pymcurl pyspnego python-dotenv quickjs-ng
 
 pythonw px.py  # run in the background
 python px.py   # run in a console window

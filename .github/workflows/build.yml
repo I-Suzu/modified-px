@@ -40,17 +40,17 @@ jobs:
           - os: ubuntu-latest
             image: "quay.io/pypa/manylinux2014_x86_64"
             name: linux-glibc-x86_64
-          #- os: ubuntu-latest
-          #  image: "quay.io/pypa/manylinux2014_aarch64"
-          #  name: linux-glibc-aarch64
-          #  qemu: true
+          - os: ubuntu-latest
+            image: "quay.io/pypa/manylinux2014_aarch64"
+            name: linux-glibc-aarch64
+            qemu: true
           - os: ubuntu-latest
             image: "quay.io/pypa/musllinux_1_2_x86_64"
             name: linux-musl-x86_64
-          #- os: ubuntu-latest
-          #  image: "quay.io/pypa/musllinux_1_2_aarch64"
-          #  name: linux-musl-aarch64
-          #  qemu: true
+          - os: ubuntu-latest
+            image: "quay.io/pypa/musllinux_1_2_aarch64"
+            name: linux-musl-aarch64
+            qemu: true
           - os: macos-latest
             name: mac-arm64
           - os: windows-latest
@@ -99,19 +99,19 @@ jobs:
           - os: ubuntu-latest
             image: "quay.io/pypa/manylinux2014_x86_64"
             name: linux-glibc-x86_64
-          #- os: ubuntu-latest
-          #  image: "quay.io/pypa/manylinux2014_aarch64"
-          #  name: linux-glibc-aarch64
-          #  qemu: true
+          - os: ubuntu-latest
+            image: "quay.io/pypa/manylinux2014_aarch64"
+            name: linux-glibc-aarch64
+            qemu: true
           - os: ubuntu-latest
             image: "alpine:3.21"
             name: linux-musl-x86_64
             alpine: true
-          #- os: ubuntu-latest
-          #  image: "alpine:3.21"
-          #  name: linux-musl-aarch64
-          #  alpine: true
-          #  qemu: true
+          - os: ubuntu-latest
+            image: "alpine:3.21"
+            name: linux-musl-aarch64
+            alpine: true
+            qemu: true
           - os: macos-latest
             name: mac-arm64
           - os: windows-latest
@@ -180,8 +180,16 @@ jobs:
             container: "quay.io/pypa/musllinux_1_2_x86_64"
             name: linux-musl-x86_64
           - os: ubuntu-latest
+            container: "quay.io/pypa/musllinux_1_2_aarch64"
+            name: linux-musl-aarch64
+            qemu: true
+          - os: ubuntu-latest
             container: ubuntu
             name: linux-glibc-x86_64
+          - os: ubuntu-latest
+            container: ubuntu
+            name: linux-glibc-aarch64
+            qemu: true
           - os: macos-latest
             name: mac-arm64
           - os: windows-latest
@@ -208,12 +216,19 @@ jobs:
         if: runner.os != 'Linux'
         uses: ./.github/actions/setup-python-env
 
+      - name: Set up QEMU
+        if: matrix.qemu
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
       - name: Test (Linux container)
         if: runner.os == 'Linux'
         run: |
+          PLATFORM="${{ matrix.qemu && '--platform linux/arm64' || '' }}"
           docker run --rm --privileged \
             -v ${{ github.workspace }}:/px -w /px \
-            ${{ matrix.container }} /bin/sh -c '. /px/build.sh && test_binary ${{ matrix.name }}'
+            $PLATFORM ${{ matrix.container }} /bin/sh -c '. /px/build.sh && test_binary ${{ matrix.name }}'
 
       - name: Test (macOS/Windows)
         if: runner.os != 'Linux'

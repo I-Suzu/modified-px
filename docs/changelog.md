@@ -7,6 +7,16 @@
 ### Bug fixes
 - Fixed #248 — check install cmd if modified.
 - Fixed #255 — handle Python v3.13 runtime context on startup.
+- Fixed `set_client_auth()` mutating the global `AUTH_SUPPORTED` list when
+  called with `ANY` or `ANYSAFE` — now copies the list.
+- Fixed `cfg_int_init()`/`cfg_float_init()` passing invalid string values to
+  callbacks when config values fail to parse — now falls back to default.
+- Fixed `send_html()` in handler inserting a tuple instead of a string into
+  the error page `explain` field.
+- Fixed `file_url_to_local_path()` returning `None` for non-Windows file URLs.
+- Fixed `--hostonly` and `--quit` failing in emulated/virtualized environments
+  (QEMU, Docker on ARM) by adding a fallback when `psutil.net_if_stats()` is
+  unavailable ([psutil#2693](https://github.com/giampaolo/psutil/issues/2693)).
 
 ### Improvements
 - Replaced `quickjs` dependency with `quickjs-ng`.
@@ -36,10 +46,6 @@
 - Ported `HISTORY.txt` to `docs/changelog.md` and removed the original file.
 - Expanded `docs/architecture.md` with State singleton, request handling, spnego
   monkey-patching, PAC evaluation, proxy reload, and error handling details.
-- Added `--test-keyring` flag and `InMemoryKeyring` backend so tests can
-  exercise the real keyring code path without a system keyring. When set, Px
-  seeds an in-memory keyring from `PX_PASSWORD`/`PX_CLIENT_PASSWORD` env vars
-  and then removes them, forcing the keyring read path.
 - Expanded pytest suite: added `test_debug.py`, `test_wproxy.py`, `test_pac.py`,
   `test_network.py`; expanded `test_config.py` with unit tests for utility
   functions and defaults. Deleted legacy `test.py`.
@@ -52,8 +58,7 @@
 - Removed old `build.sh` and `build.ps1` monolithic build scripts — replaced
   by GitHub Actions workflows and the new `build.sh` function library.
 - Added GitHub Actions CI workflow (`ci.yml`) with quality checks and test
-  matrix across Python 3.10–3.14 (plus free-threaded 3.13t/3.14t) on
-  ubuntu, macos, and windows.
+  matrix on Python 3.14 across ubuntu, macos, and windows.
 - Added GitHub Actions build workflow (`build.yml`) for wheels, Nuitka/embedded
   binaries, multi-distro testing, GitHub release posting, and PyPI publishing.
   Platform matrix covers all targets where both `pymcurl` and `quickjs-ng`

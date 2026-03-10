@@ -352,7 +352,7 @@ class PxHandler(http.server.BaseHTTPRequestHandler):
         content = self.error_message_format % {
             "code": code,
             "message": html.escape(message, quote=False),
-            "explain": self.responses[code],
+            "explain": self.responses.get(code, ("???",))[0],
         }
         body = content.encode("UTF-8", "replace")
         self.send_header("Content-Type", self.error_content_type)

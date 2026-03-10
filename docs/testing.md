@@ -75,8 +75,8 @@ Python 3.14. All Python versions (3.10–3.14) are tested via tox in the build
 workflow's `test-binary` job.
 
 The build workflow (`.github/workflows/build.yml`) additionally tests built
-artifacts using tox across all Python versions (3.10–3.14) inside Alpine,
-Ubuntu, and Debian Docker containers and on native macOS/Windows runners.
+artifacts using tox across all Python versions (3.10–3.14) inside Alpine and
+Ubuntu Docker containers and on native macOS/Windows runners.
 
 ---
 

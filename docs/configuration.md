@@ -22,7 +22,7 @@ precedence (highest first):
 
 | Platform | Path |
 |----------|------|
-| Windows | `%APPDATA%\Roaming\px` |
+| Windows | `%APPDATA%\px` |
 | Linux | `~/.config/px` |
 | macOS | `~/Library/Application Support/px` |
 

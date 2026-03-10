@@ -54,13 +54,9 @@ class ThreadedTCPServer(PoolMixIn, socketserver.TCPServer):
     def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True):
         socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
 
-        try:
-            # Workaround bad thread naming code in Python 3.6+, fixed in master
-            self.pool = concurrent.futures.ThreadPoolExecutor(
-                max_workers=STATE.config.getint("settings", "threads"), thread_name_prefix="Thread"
-            )
-        except:
-            self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=STATE.config.getint("settings", "threads"))
+        self.pool = concurrent.futures.ThreadPoolExecutor(
+            max_workers=STATE.config.getint("settings", "threads"), thread_name_prefix="Thread"
+        )
 
 
 def print_banner(listen, port):
