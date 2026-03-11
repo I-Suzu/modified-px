@@ -3,7 +3,6 @@ name: Build
 on:
   push:
     branches: [master, devel]
-    tags: ["v*"]
   workflow_dispatch:
 
 concurrency:
@@ -11,6 +10,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Extract version from pyproject.toml
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: resolve
+        run: |
+          VERSION=$(python3 -c "import re, pathlib; text = pathlib.Path('pyproject.toml').read_text(); m = re.search(r'version = \"(.+?)\"', text); print(m.group(1))")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
   # Build sdist and pure-Python wheel
   sdist:
     runs-on: ubuntu-latest
@@ -237,16 +253,20 @@ jobs:
           PX_CI_MINIMAL: ${{ runner.os == 'macOS' && '1' || '' }}
         run: . ./build.sh && test_binary ${{ matrix.name }}
 
-  # Create GitHub release
+  # Tag, create GitHub release, and publish to PyPI
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    needs: [test-binary]
+    needs: [setup, test-binary]
     permissions:
+      id-token: write
       contents: write
+    environment: pypi
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Download all binary artifacts
         uses: actions/download-artifact@v7
@@ -270,28 +290,27 @@ jobs:
       - name: Extract release notes
         run: python3 tools.py --history > /tmp/notes.md
 
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TAG="v${{ needs.setup.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ needs.setup.outputs.version }}
           body_path: /tmp/notes.md
           files: release/*
           prerelease: true
 
-  # Publish sdist to PyPI
-  publish:
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    needs: [test-binary]
-    permissions:
-      id-token: write
-    environment: pypi
-
-    steps:
-      - name: Download sdist
-        uses: actions/download-artifact@v7
-        with:
-          name: sdist
-          path: dist/
-
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: artifacts/sdist/

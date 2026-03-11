@@ -2,7 +2,7 @@
 
 ---
 
-## v0.10.3 — TBD
+## v0.10.3 — 2026-03-11
 
 ### Bug fixes
 - Fixed #248 — check install cmd if modified.
@@ -32,6 +32,10 @@
 
 ### Internal
 - Modernised project tooling: ruff, mypy, pre-commit, Makefile, `docs/` folder.
+- Build workflow now runs on `master` and `devel` but only publishes on
+  `master`. Version is extracted from `pyproject.toml` and the release job
+  publishes to PyPI, creates the tag, and creates the GitHub release
+  automatically after tests pass — no manual tag push required.
 - Fixed build workflow: Linux musl Nuitka builds now use Alpine containers
   (both x86_64 and aarch64) since musllinux containers lack Python dev headers
   needed by Nuitka. Linux glibc builds use Python 3.13 from the manylinux

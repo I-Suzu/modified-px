@@ -51,11 +51,13 @@ Runs on every push to `master` and `devel` branches and on pull requests.
 
 ### Build (`build.yml`)
 
-Triggered by version tags (`v*`), pushes to `master` and `devel`, and manual dispatch.
-All CI scaffolding (environment setup, wheel building, binary building, archive
+Triggered by pushes to `master` and `devel`, and manual dispatch. All CI
+scaffolding (environment setup, wheel building, binary building, archive
 extraction, and test execution) is implemented as shell functions in `build.sh`
 and called from the workflow steps.
 
+- **setup** — extracts the version from `pyproject.toml` and makes it available
+  to downstream jobs.
 - **sdist** — builds the sdist and pure-Python wheel using `tools.py --wheel`.
 - **wheels** — builds dependency wheels for each platform inside manylinux,
   musllinux, or native runners across Python 3.10–3.14. Uses
@@ -75,9 +77,9 @@ and called from the workflow steps.
   and `test_binary` from `build.sh`. The `PXBIN` environment variable is
   set so the `binary` tox environment can test the Nuitka binary directly.
   macOS excludes `test_network.py` via `PX_CI_MINIMAL`.
-- **release** — collects artifacts and creates a GitHub release with changelog
-  notes extracted via `tools.py --history`.
-- **publish** — publishes the sdist and wheel to PyPI using trusted publishing.
+- **release** — on `master` only: publishes the sdist and wheel to PyPI using
+  trusted publishing, creates and pushes a version tag, and creates a GitHub
+  release with changelog notes extracted via `tools.py --history`.
 
 ## `build.sh`
 
