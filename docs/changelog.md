@@ -32,10 +32,22 @@
 
 ### Internal
 - Modernised project tooling: ruff, mypy, pre-commit, Makefile, `docs/` folder.
-- Build workflow now runs on `master` and `devel` but only publishes on
-  `master`. Version is extracted from `pyproject.toml` and the release job
-  publishes to PyPI, creates the tag, and creates the GitHub release
-  automatically after tests pass — no manual tag push required.
+- CI workflow (`ci.yml`) now triggers on `devel` push and PRs only (not
+  `master`). Test matrix expanded to 9 jobs: Ubuntu on Python 3.10–3.14, macOS
+  on 3.10 and 3.14, Windows on 3.10 and 3.14.
+- Build workflow (`build.yml`) now triggers on `master` push and
+  `workflow_dispatch` only. Docker build and push steps merged into the
+  `release` job (separate `docker` job removed).
+- Added Dependabot configuration for monthly pip and GitHub Actions updates.
+- `tools.py`: all `sys.exit()` calls changed to `sys.exit(1)` for proper error
+  propagation. Docker function updated to accept `--push` flag and
+  `--wheels-dir` option for CI usage.
+- `build.sh`: added `build_local` function for end-to-end local build and test
+  using Docker containers (musl or glibc). Added `auditwheel` to pip install in
+  `build_binary` for both musl and glibc. Added error checking (`|| return 1`)
+  to `build_local` steps.
+- Added `test-musl` and `test-glibc` Makefile targets for local container
+  testing.
 - Fixed build workflow: Linux musl Nuitka builds now use Alpine containers
   (both x86_64 and aarch64) since musllinux containers lack Python dev headers
   needed by Nuitka. Linux glibc builds use Python 3.13 from the manylinux

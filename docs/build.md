@@ -41,17 +41,18 @@ All CI and release builds run via GitHub Actions. The workflows live in
 
 ### CI (`ci.yml`)
 
-Runs on every push to `master` and `devel` branches and on pull requests.
+Runs on pushes to the `devel` branch and on pull requests (fast feedback loop).
 
 - **quality** — runs `make check` (pre-commit, ruff, mypy).
-- **tests** — runs `pytest` on ubuntu, macos, and windows on Python 3.14.
+- **tests** — runs `pytest` across an expanded matrix: Ubuntu on Python
+  3.10–3.14, macOS on 3.10 and 3.14, Windows on 3.10 and 3.14 (9 jobs total).
   Uses the shared `.github/actions/setup-python-env` action for consistent
   environment setup. macOS excludes `test_network.py` due to GitHub Actions
   environment limitations.
 
 ### Build (`build.yml`)
 
-Triggered by pushes to `master` and `devel`, and manual dispatch. All CI
+Triggered by pushes to `master` and manual dispatch (`workflow_dispatch`). All CI
 scaffolding (environment setup, wheel building, binary building, archive
 extraction, and test execution) is implemented as shell functions in `build.sh`
 and called from the workflow steps.
@@ -78,8 +79,9 @@ and called from the workflow steps.
   set so the `binary` tox environment can test the Nuitka binary directly.
   macOS excludes `test_network.py` via `PX_CI_MINIMAL`.
 - **release** — on `master` only: publishes the sdist and wheel to PyPI using
-  trusted publishing, creates and pushes a version tag, and creates a GitHub
-  release with changelog notes extracted via `tools.py --history`.
+  trusted publishing, creates and pushes a version tag, creates a GitHub
+  release with changelog notes extracted via `tools.py --history`, and builds
+  and pushes Docker images to Docker Hub.
 
 ## `build.sh`
 
@@ -97,6 +99,10 @@ stays concise. Functions include:
   `--embed` plus `--depspkg`.
 - `extract_archives` — unpacks binary and wheel archives for the test-binary job.
 - `test_binary` — sets up tox and runs the test suite against the built artifacts.
+- `build_local` — end-to-end local build and test using Docker containers.
+  Accepts `musl` or `glibc` as argument. Builds the sdist, wheels, binary, and
+  runs the full tox test suite in the appropriate container images. Invoked via
+  `make test-musl` or `make test-glibc`.
 
 ## `tools.py`
 
@@ -109,7 +115,9 @@ Local build helper used by both developers and the GitHub Actions workflows:
 - `--deps` — builds dependency wheels for the current Python version.
 - `--depspkg` — packages all dependency wheels into a release archive with
   sha256 checksums.
-- `--docker` — builds `genotrance/px` Docker images (full and mini).
+- `--docker` — builds `genotrance/px` Docker images (full and mini). Accepts
+  `--push` to push images to Docker Hub and `--wheels-dir` to specify the
+  wheel directory path.
 - `--history` — prints the latest changelog section from `docs/changelog.md`
   (used by the release job for GitHub release notes).
 
@@ -118,4 +126,12 @@ Local build helper used by both developers and the GitHub Actions workflows:
 Px is available as a prebuilt Docker image at `genotrance/px`. Two variants
 are posted — the default includes keyring and dependencies, while the mini
 version is smaller but requires `PX_PASSWORD` and `PX_CLIENT_PASSWORD`
-environment variables for credentials.
+environment variables for credentials. Images are built and pushed automatically
+as part of the `release` job in `build.yml` on merge to `master`. Docker Hub
+credentials are stored as repository secrets (`DOCKERHUB_USERNAME` and
+`DOCKERHUB_TOKEN`).
+
+## Dependabot
+
+Dependabot is configured in `.github/dependabot.yml` to check for updates
+monthly for both pip dependencies and GitHub Actions versions.

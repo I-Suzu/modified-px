@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [master, devel]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -306,6 +306,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.setup.outputs.version }}
+          name: Px v${{ needs.setup.outputs.version }}
           body_path: /tmp/notes.md
           files: release/*
           prerelease: true
@@ -314,3 +315,13 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: artifacts/sdist/
+
+      # Build and push Docker images
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker images
+        run: python3 tools.py --docker --push --wheels-dir=artifacts/binary-linux-musl-x86_64/px.dist-linux-musl-x86_64-wheels

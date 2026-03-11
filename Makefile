@@ -13,6 +13,14 @@ check: ## Run code quality tools
 test: ## Run the test suite with coverage
 	@uv run python -m pytest tests -n 4 --cov --cov-config=pyproject.toml --cov-report=xml
 
+.PHONY: test-musl
+test-musl: ## Build and test in musl (Alpine) containers
+	@. ./build.sh && build_local musl
+
+.PHONY: test-glibc
+test-glibc: ## Build and test in glibc (manylinux) containers
+	@. ./build.sh && build_local glibc
+
 .PHONY: build
 build: clean ## Build sdist and wheel
 	@uv build

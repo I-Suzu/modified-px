@@ -118,7 +118,7 @@ build_binary() {
             ensure_uv
             python3 -m venv .venv
             . .venv/bin/activate
-            uv pip install nuitka pymcurl -f "$WHEELS"
+            uv pip install nuitka auditwheel pymcurl -f "$WHEELS"
             uv pip install px-proxy --no-index -f "$WHEELS"
             python tools.py --nuitka
             python tools.py --depspkg
@@ -130,7 +130,7 @@ build_binary() {
             PY=/opt/python/cp313-cp313/bin/python3
             "$PY" -m venv .venv
             . .venv/bin/activate
-            uv pip install nuitka pymcurl -f "$WHEELS"
+            uv pip install nuitka auditwheel pymcurl -f "$WHEELS"
             uv pip install px-proxy --no-index -f "$WHEELS"
             python tools.py --nuitka
             python tools.py --depspkg
@@ -235,4 +235,77 @@ test_binary() {
             --override "tool.tox.env_run_base.install_command=uv pip install --no-index -f $WHEELS" \
             --override "tool.tox.env_run_base.commands=$PYTEST_CMD"
     fi
+}
+
+# --- Local build and test ---
+
+# Build wheels, binary, and run tests locally using Docker containers
+# Usage: . ./build.sh && build_local [musl|glibc]
+build_local() {
+    TYPE="${1:-musl}"
+    case "$TYPE" in
+        musl)
+            NAME="linux-musl-x86_64"
+            WHEELS_IMAGE="quay.io/pypa/musllinux_1_2_x86_64"
+            BINARY_IMAGE="alpine:3.21"
+            BINARY_SHELL="/bin/sh"
+            TEST_IMAGE="$WHEELS_IMAGE"
+            TEST_SHELL="/bin/bash"
+            ;;
+        glibc)
+            NAME="linux-glibc-x86_64"
+            WHEELS_IMAGE="quay.io/pypa/manylinux2014_x86_64"
+            BINARY_IMAGE="$WHEELS_IMAGE"
+            BINARY_SHELL="/bin/bash"
+            TEST_IMAGE="ubuntu"
+            TEST_SHELL="/bin/bash"
+            ;;
+        *)
+            echo "Usage: build_local [musl|glibc]"
+            return 1
+            ;;
+    esac
+
+    WHEELS_DIR="px.dist-${NAME}-wheels/px.dist"
+    HOSTUID="$(id -u)"
+    HOSTGID="$(id -g)"
+    CHOWN="chown -R $HOSTUID:$HOSTGID"
+
+    echo "=== Building sdist ==="
+    uv sync
+    uv pip install build twine
+    uv run python tools.py --wheel || return 1
+
+    echo "=== Building wheels in $WHEELS_IMAGE ==="
+    docker run --rm -v "$(pwd)":/px -w /px \
+        "$WHEELS_IMAGE" /bin/bash -c "
+            . /px/build.sh && build_wheels
+            RC=\$?; $CHOWN wheels/ 2>/dev/null || true; exit \$RC
+        " || return 1
+
+    # Move wheels into expected location for build_binary
+    rm -rf "px.dist-${NAME}-wheels"
+    mkdir -p "$WHEELS_DIR"
+    cp wheels/*.whl "$WHEELS_DIR/"
+
+    echo "=== Building binary in $BINARY_IMAGE ==="
+    docker run --rm -v "$(pwd)":/px -w /px \
+        "$BINARY_IMAGE" $BINARY_SHELL -c "
+            rm -rf .venv && . /px/build.sh && build_binary $NAME
+            RC=\$?; $CHOWN px.dist-* wheel/ build/ .venv px_proxy.egg-info 2>/dev/null || true; exit \$RC
+        " || return 1
+
+    echo "=== Extracting archives ==="
+    extract_archives "$NAME"
+
+    echo "=== Testing binary in $TEST_IMAGE ==="
+    docker run --rm --privileged -v "$(pwd)":/px -w /px \
+        "$TEST_IMAGE" $TEST_SHELL -c "
+            # Prefer non-free-threaded Python if available
+            [ -d /opt/python/cp314-cp314/bin ] && export PATH=/opt/python/cp314-cp314/bin:\$PATH
+            rm -rf .venv && . /px/build.sh && test_binary $NAME
+            RC=\$?; $CHOWN .venv 2>/dev/null || true; exit \$RC
+        "
+
+    echo "=== All done ==="
 }

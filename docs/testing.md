@@ -69,14 +69,35 @@ The `tox` configuration in `pyproject.toml` defines environments for Python
 
 ## CI testing
 
-GitHub Actions runs the full test suite on every push and pull request via
-`.github/workflows/ci.yml`. The matrix covers ubuntu, macos, and windows on
-Python 3.14. All Python versions (3.10–3.14) are tested via tox in the build
-workflow's `test-binary` job.
+GitHub Actions runs the full test suite on every push to the `devel` branch and
+on pull requests via `.github/workflows/ci.yml`. The matrix covers 9
+configurations: Ubuntu on Python 3.10–3.14, macOS on 3.10 and 3.14, and Windows
+on 3.10 and 3.14. All Python versions (3.10–3.14) are additionally tested via
+tox in the build workflow's `test-binary` job.
 
-The build workflow (`.github/workflows/build.yml`) additionally tests built
-artifacts using tox across all Python versions (3.10–3.14) inside Alpine and
-Ubuntu Docker containers and on native macOS/Windows runners.
+The build workflow (`.github/workflows/build.yml`) triggers on pushes to
+`master` and manual dispatch. It tests built artifacts using tox across all
+Python versions (3.10–3.14) inside Alpine and Ubuntu Docker containers and on
+native macOS/Windows runners.
+
+---
+
+## Local container testing
+
+The `build_local` function in `build.sh` provides end-to-end local build and
+test using Docker containers. It builds the sdist, wheels, and Nuitka binary,
+then runs the full tox test suite — all inside appropriate container images.
+
+```bash
+# Build and test in musl (Alpine) containers
+make test-musl
+
+# Build and test in glibc (manylinux) containers
+make test-glibc
+```
+
+This matches the CI pipeline closely and is useful for verifying Linux builds
+locally before pushing.
 
 ---
 

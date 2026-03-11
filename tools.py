@@ -207,7 +207,7 @@ def wheel():
         rmtree("wheel")
         if os.system(sys.executable + " -m build -s -w -o wheel --installer=uv") != 0:
             print("Failed to build wheel")
-            sys.exit()
+            sys.exit(1)
 
         # Check wheels
         os.system(sys.executable + " -m twine check wheel/*")
@@ -287,7 +287,7 @@ def get_pip(executable=sys.executable):
     ret, data = curl(url)
     if ret != 0:
         print(f"Failed to download get-pip.py with error {ret}")
-        sys.exit()
+        sys.exit(1)
     with open("get-pip.py", "w") as gp:
         gp.write(data)
 
@@ -304,7 +304,7 @@ def embed():
     _, _, wdist = get_paths(prefix, "wheels")
     if not os.path.exists(wdist):
         print(f"Wheels not found at {wdist}, required to embed")
-        sys.exit()
+        sys.exit(1)
 
     # Destination path
     archfile, outdir, dist = get_paths(prefix)
@@ -339,7 +339,7 @@ def embed():
         ret, data = curl(dlurl, encoding=None)
         if ret != 0:
             print(f"Failed to download {dlurl} with error {ret}")
-            sys.exit()
+            sys.exit(1)
 
         # Write data to file
         with open(fname, "wb") as f:
@@ -486,33 +486,40 @@ def depspkg():
 
 def docker():
     tag = "genotrance/px"
-    dbuild = "docker build --network host --build-arg VERSION=" + __version__ + " -f docker/Dockerfile"
+    dbuild = "docker build --network host --build-arg VERSION=" + __version__
+    wheels_dir = get_argval("wheels-dir")
+    if wheels_dir:
+        dbuild += f" --build-arg WHEELS_DIR={wheels_dir}"
+    dbuild += " -f docker/Dockerfile"
+    push = "--push" in sys.argv
 
     # Build mini image
     mtag = f"{tag}:{__version__}-mini"
-    ret = os.system(dbuild + f" -t {mtag} --target=mini .")
+    ltag = f"{tag}:latest-mini"
+    ret = os.system(dbuild + f" -t {mtag} -t {ltag} --target=mini .")
     if ret != 0:
         print("Failed to build mini image")
-        sys.exit()
+        sys.exit(1)
 
-    # Tag mini image
-    ret = os.system(f"docker tag {mtag} {tag}:latest-mini")
-    if ret != 0:
-        print("Failed to tag mini image")
-        sys.exit()
+    if push:
+        for t in [mtag, ltag]:
+            if os.system(f"docker push {t}") != 0:
+                print(f"Failed to push {t}")
+                sys.exit(1)
 
     # Build full image
     ftag = f"{tag}:{__version__}"
-    ret = os.system(dbuild + f" -t {ftag} .")
+    lftag = f"{tag}:latest"
+    ret = os.system(dbuild + f" -t {ftag} -t {lftag} .")
     if ret != 0:
         print("Failed to build full image")
-        sys.exit()
+        sys.exit(1)
 
-    # Tag full image
-    ret = os.system(f"docker tag {ftag} {tag}:latest")
-    if ret != 0:
-        print("Failed to tag full image")
-        sys.exit()
+    if push:
+        for t in [ftag, lftag]:
+            if os.system(f"docker push {t}") != 0:
+                print(f"Failed to push {t}")
+                sys.exit(1)
 
 
 def get_history():
@@ -567,6 +574,8 @@ Build:
 --deps		Build all wheel dependencies for this Python version
 --depspkg	Build an archive of all dependencies
 --docker	Build Docker images
+  --push	Push images to Docker Hub
+  --wheels-dir=DIR	Wheels directory (default: px.dist-linux-musl-x86_64-wheels)
 --history	Print latest changelog section
 """)
 

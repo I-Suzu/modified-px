@@ -5,10 +5,10 @@ FROM base AS builder
 
 # VERSION argument
 ARG VERSION
-ENV VERSION=$VERSION
+ARG WHEELS_DIR=px.dist-linux-musl-x86_64-wheels
 
 # Copy and extract binary
-COPY px.dist-linux-musl-x86_64-wheels/px-v${VERSION}-linux-musl-x86_64-wheels.tar.gz /tmp/wheels.tar.gz
+COPY ${WHEELS_DIR}/px-v${VERSION}-linux-musl-x86_64-wheels.tar.gz /tmp/wheels.tar.gz
 RUN tar -xzf /tmp/wheels.tar.gz -C /tmp
 
 # Install px
