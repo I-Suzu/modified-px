@@ -77,7 +77,7 @@ tox in the build workflow's `test-binary` job.
 
 The build workflow (`.github/workflows/build.yml`) triggers on pushes to
 `master` and manual dispatch. It tests built artifacts using tox across all
-Python versions (3.10–3.14) inside Alpine and Ubuntu Docker containers and on
+Python versions (3.10–3.14) inside musllinux and Ubuntu Docker containers and on
 native macOS/Windows runners.
 
 ---
@@ -85,8 +85,8 @@ native macOS/Windows runners.
 ## Local container testing
 
 The `build_local` function in `build.sh` provides end-to-end local build and
-test using Docker containers. It builds the sdist, wheels, and Nuitka binary,
-then runs the full tox test suite — all inside appropriate container images.
+test using Docker containers. It builds the sdist on the host, then runs the
+wheels, binary, and test steps inside appropriate container images.
 
 ```bash
 # Build and test in musl (Alpine) containers

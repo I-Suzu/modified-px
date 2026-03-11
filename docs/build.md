@@ -73,7 +73,7 @@ and called from the workflow steps.
   `Python.h` which the musllinux containers lack.
 - **test-binary** — extracts the release archives produced by the binary job,
   then tests them using `tox` to verify functionality across all Python
-  versions (3.10–3.14). Tests run inside Alpine and Ubuntu containers
+  versions (3.10–3.14). Tests run inside musllinux and Ubuntu containers
   on Linux and on native macOS/Windows runners. Uses `extract_archives`
   and `test_binary` from `build.sh`. The `PXBIN` environment variable is
   set so the `binary` tox environment can test the Nuitka binary directly.
@@ -115,8 +115,8 @@ Local build helper used by both developers and the GitHub Actions workflows:
 - `--deps` — builds dependency wheels for the current Python version.
 - `--depspkg` — packages all dependency wheels into a release archive with
   sha256 checksums.
-- `--docker` — builds `genotrance/px` Docker images (full and mini). Accepts
-  `--push` to push images to Docker Hub and `--wheels-dir` to specify the
+- `--docker` — builds `genotrance/px` Docker images (full and mini, Linux only).
+  Accepts `--push` to push images to Docker Hub and `--wheels-dir` to specify the
   wheel directory path.
 - `--history` — prints the latest changelog section from `docs/changelog.md`
   (used by the release job for GitHub release notes).

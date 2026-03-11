@@ -48,6 +48,8 @@
   to `build_local` steps.
 - Added `test-musl` and `test-glibc` Makefile targets for local container
   testing.
+- Updated GitHub Actions to Node 24: `actions/setup-python` v6,
+  `astral-sh/setup-uv` v7, Docker actions v4.
 - Fixed build workflow: Linux musl Nuitka builds now use Alpine containers
   (both x86_64 and aarch64) since musllinux containers lack Python dev headers
   needed by Nuitka. Linux glibc builds use Python 3.13 from the manylinux
@@ -74,7 +76,7 @@
 - Removed old `build.sh` and `build.ps1` monolithic build scripts — replaced
   by GitHub Actions workflows and the new `build.sh` function library.
 - Added GitHub Actions CI workflow (`ci.yml`) with quality checks and test
-  matrix on Python 3.14 across ubuntu, macos, and windows.
+  matrix across Python 3.10–3.14 on ubuntu, macos, and windows.
 - Added GitHub Actions build workflow (`build.yml`) for wheels, Nuitka/embedded
   binaries, multi-distro testing, GitHub release posting, and PyPI publishing.
   Platform matrix covers all targets where both `pymcurl` and `quickjs-ng`
@@ -83,7 +85,7 @@
 - Added `build.sh` as a shell function library sourced by `build.yml`. It
   consolidates repeated CI scaffolding (uv installation, Python discovery,
   wheel building, binary building, archive extraction, test execution) into
-  reusable functions, reducing `build.yml` from ~430 to ~280 lines.
+  reusable functions, keeping `build.yml` concise.
 - Refactored `tools.py`: made `pymcurl` import lazy so the script can run
   without it installed (guards in `curl()` and `nuitka()`). Added
   `make_archive_with_hash()` helper to deduplicate archive+hash blocks.
