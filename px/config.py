@@ -346,6 +346,7 @@ DEFAULTS = {
     "proxyreload": "60",
     "foreground": "0",
     "log": "0",
+    "tunnel_lifetime": "1500",
     "test": None,
 }
 
@@ -368,6 +369,7 @@ class State:
     pac = ""
     proxyreload = 60
     socktimeout = 20.0
+    tunnel_lifetime = 1500
     useragent = ""
 
     # Auth
@@ -424,6 +426,7 @@ class State:
             "idle": self.set_idle,
             "socktimeout": self.set_socktimeout,
             "proxyreload": self.set_proxyreload,
+            "tunnel_lifetime": self.set_tunnel_lifetime,
             "test": self.set_test,
         }
 
@@ -587,6 +590,9 @@ class State:
     def set_proxyreload(self, proxyreload):
         self.proxyreload = proxyreload
 
+    def set_tunnel_lifetime(self, tunnel_lifetime):
+        self.tunnel_lifetime = tunnel_lifetime
+
     def set_test(self, test):
         self.test = test
 
@@ -652,7 +658,7 @@ class State:
             self.cfg_int_init("client", name, val, callback, override)
 
         # [settings]
-        elif name in ["workers", "threads", "idle", "proxyreload", "foreground", "log"]:
+        elif name in ["workers", "threads", "idle", "proxyreload", "foreground", "log", "tunnel_lifetime"]:
             self.cfg_int_init("settings", name, val, callback, override)
         elif name in ["socktimeout"]:
             self.cfg_float_init("settings", name, val, callback, override)

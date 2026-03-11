@@ -6,6 +6,7 @@ import html
 import http.server
 import os
 import sys
+import threading
 import time
 import typing
 
@@ -226,7 +227,23 @@ class PxHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200, "Connection established")
                 self.send_header("Proxy-Agent", self.version_string())
                 self.end_headers()
-            STATE.mcurl.select(self.curl, self.connection, STATE.idle)
+            tunnel_timer = None
+            if STATE.tunnel_lifetime > 0:
+                easyhash = self.curl.easyhash
+                conn = self.connection
+                def _expire_tunnel():
+                    dprint(easyhash + ": Tunnel lifetime exceeded (%d sec), closing for re-auth" % STATE.tunnel_lifetime)
+                    try:
+                        conn.shutdown(socket.SHUT_RDWR)
+                    except OSError:
+                        pass
+                tunnel_timer = threading.Timer(STATE.tunnel_lifetime, _expire_tunnel)
+                tunnel_timer.start()
+            try:
+                STATE.mcurl.select(self.curl, self.connection, STATE.idle)
+            finally:
+                if tunnel_timer is not None:
+                    tunnel_timer.cancel()
             self.close_connection = True
 
         STATE.mcurl.remove(self.curl)
