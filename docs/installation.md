@@ -52,6 +52,19 @@ Place a minimal `WinSW-x64.xml` configuration file next to the executable:
   <name>Px Service (powered by WinSW)</name>
   <description>Px HTTP proxy service</description>
   <executable>D:\px\px.exe</executable>
+
+  <!-- Run under a specific user account to access their credentials via SSPI -->
+  <serviceaccount>
+    <domain>DOMAIN</domain>
+    <user>username</user>
+    <password>password</password>
+    <allowLogonAsService>true</allowLogonAsService>
+  </serviceaccount>
+
+  <!-- Alternative: Pass credentials via environment variables running as LocalSystem
+  <env name="PX_USERNAME" value="DOMAIN\username"/>
+  <env name="PX_PASSWORD" value="password"/>
+  -->
 </service>
 ```
 
@@ -62,6 +75,17 @@ Run from an elevated administrator prompt:
 Start the service:
 
     WinSW-x64.exe start WinSW-x64.xml
+
+> **Note:** When running Px as a Windows service using WinSW, the service typically runs
+> under the LocalSystem account. This account does not have access to SSPI for NTLM or
+> Kerberos authentication, which relies on the interactive user's security context.
+> You have two options:
+>
+> 1. Use `<serviceaccount>` to run the WinSW service under a specific user account, which allows SSPI to work with that user's credentials
+> 2. Use `<env>` to pass explicit username/password credentials via environment variables when running as LocalSystem
+>
+> If you need to use your current user's credentials through SSPI or Credential Manager, consider using `pxw` with automatic startup instead
+> of having to write your credentials in the service configuration.
 
 ## Source install
 
