@@ -230,13 +230,16 @@ class PxHandler(http.server.BaseHTTPRequestHandler):
             tunnel_timer = None
             if STATE.tunnel_lifetime > 0:
                 easyhash = self.curl.easyhash
-                conn = self.connection
+                curl = self.curl
                 def _expire_tunnel():
                     dprint(easyhash + ": Tunnel lifetime exceeded (%d sec), closing for re-auth" % STATE.tunnel_lifetime)
-                    try:
-                        conn.shutdown(socket.SHUT_RDWR)
-                    except OSError:
-                        pass
+                    if curl.sock_fd is not None:
+                        try:
+                            s = socket.fromfd(curl.sock_fd, socket.AF_INET, socket.SOCK_STREAM)
+                            s.shutdown(socket.SHUT_RDWR)
+                            s.detach()
+                        except OSError:
+                            pass
                 tunnel_timer = threading.Timer(STATE.tunnel_lifetime, _expire_tunnel)
                 tunnel_timer.start()
             try:
