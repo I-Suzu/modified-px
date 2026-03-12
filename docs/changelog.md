@@ -7,11 +7,11 @@
 ### New features
 - Added `tunnel_lifetime` setting (`--tunnel_lifetime=` / `PX_TUNNEL_LIFETIME=` /
   `settings:tunnel_lifetime=`): Px proactively closes CONNECT tunnels after the
-  configured number of seconds (default: 1500, i.e. 25 minutes) to prevent forced
+  configured number of seconds (default: 600, i.e. 10 minutes) to prevent forced
   disconnection by corporate proxies.
 
   Some corporate NTLM proxies enforce a maximum tunnel lifetime (typically around
-  30 minutes). When the proxy forcibly resets the tunnel, long-lived client
+  10 minutes). When the proxy forcibly resets the tunnel, long-lived client
   connections receive a hard error that Px cannot transparently recover from.
   With `tunnel_lifetime` set slightly below the corporate proxy's limit, Px tears
   down the upstream connection cleanly before the forced reset occurs. Clients

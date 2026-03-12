@@ -177,7 +177,7 @@ Configuration:
     If Px crashes without logging, traceback is written to the working dir
 
   --tunnel_lifetime= | PX_TUNNEL_LIFETIME= | settings:tunnel_lifetime=
-  Tunnel lifetime in seconds for CONNECT tunnels. Valid integer, default: 1500
+  Tunnel lifetime in seconds for CONNECT tunnels. Valid integer, default: 600
     Px will proactively close CONNECT tunnels after this many seconds to prevent
     forced disconnection by corporate proxies. Clients will automatically
     reconnect and re-authenticate. Set to 0 to disable (no lifetime limit)."""

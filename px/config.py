@@ -346,7 +346,7 @@ DEFAULTS = {
     "proxyreload": "60",
     "foreground": "0",
     "log": "0",
-    "tunnel_lifetime": "1500",
+    "tunnel_lifetime": "600",
     "test": None,
 }
 
@@ -369,7 +369,7 @@ class State:
     pac = ""
     proxyreload = 60
     socktimeout = 20.0
-    tunnel_lifetime = 1500
+    tunnel_lifetime = 600
     useragent = ""
 
     # Auth

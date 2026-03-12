@@ -142,7 +142,7 @@ so issues, forks and PRs are most appreciated. Join us on the
 ## Fork modification: `tunnel_lifetime`
 
 Some corporate NTLM proxies enforce a maximum lifetime on CONNECT tunnels
-(typically around 30 minutes). When the proxy forcibly resets the tunnel,
+(typically around 10 minutes). When the proxy forcibly resets the tunnel,
 long-lived client connections receive a hard error that Px cannot transparently
 recover from.
 
@@ -157,20 +157,20 @@ Add to `px.ini` under `[settings]`:
 
 ```ini
 [settings]
-tunnel_lifetime = 1500  ; seconds (default: 1500 = 25 minutes)
+tunnel_lifetime = 600  ; seconds (default: 600 = 10 minutes)
 ```
 
 Or use the CLI flag or environment variable:
 
 ```bash
-px --tunnel_lifetime=1500
+px --tunnel_lifetime=600
 # or
-PX_TUNNEL_LIFETIME=1500 px
+PX_TUNNEL_LIFETIME=600 px
 ```
 
 | Value | Behaviour |
 |-------|-----------|
-| `1500` (default) | Close tunnel after 25 minutes |
+| `600` (default) | Close tunnel after 10 minutes |
 | `0` | Disable — no lifetime limit (original behaviour) |
 | Any positive integer | Close tunnel after that many seconds |
 
