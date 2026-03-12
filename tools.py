@@ -143,6 +143,8 @@ def curl(
     ec = mcurl.Curl(url, method)
     ec.set_debug()
 
+    if proxy is None:
+        proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
     if proxy is not None:
         ec.set_proxy(proxy)
 
@@ -332,6 +334,10 @@ def embed():
             if len(version) == 0 or version in url:
                 dlurl = url
                 break
+
+    # If version specified but not found on downloads page, try FTP directly
+    if not dlurl and version and re.match(r'\d+\.\d+\.\d+', version):
+        dlurl = f"https://www.python.org/ftp/python/{version}/python-{version}-embed-amd64.zip"
 
     # Download zip file
     fname = os.path.join(outdir, os.path.basename(dlurl))
