@@ -92,3 +92,6 @@ uv.lock
 # Local tooling
 .claude/
 pyinst-windows-amd64/
+
+# Personal notes
+BUILD.md
