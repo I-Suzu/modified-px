@@ -88,3 +88,7 @@ _*.stats
 *.crt
 .env
 uv.lock
+
+# Local tooling
+.claude/
+pyinst-windows-amd64/
