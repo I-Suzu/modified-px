@@ -139,6 +139,43 @@ so issues, forks and PRs are most appreciated. Join us on the
 [Gitter](https://gitter.im/genotrance/px) or
 [Matrix](https://matrix.to/#/#genotrance_px:matrix.org) to chat about Px.
 
+## Fork modification: `tunnel_lifetime`
+
+Some corporate NTLM proxies enforce a maximum lifetime on CONNECT tunnels
+(typically around 30 minutes). When the proxy forcibly resets the tunnel, clients
+such as GitHub Copilot and VS Code receive a connection error that they cannot
+recover from without manually restarting Px.
+
+This fork adds a `tunnel_lifetime` setting that causes Px to proactively close
+CONNECT tunnels before the corporate proxy does. Clients detect the clean closure,
+reconnect, and re-authenticate through NTLM automatically — no user intervention
+required.
+
+### Configuration
+
+Add to `px.ini` under `[settings]`:
+
+```ini
+[settings]
+tunnel_lifetime = 1500  ; seconds (default: 1500 = 25 minutes)
+```
+
+Or use the CLI flag or environment variable:
+
+```bash
+px --tunnel_lifetime=1500
+# or
+PX_TUNNEL_LIFETIME=1500 px
+```
+
+| Value | Behaviour |
+|-------|-----------|
+| `1500` (default) | Close tunnel after 25 minutes |
+| `0` | Disable — no lifetime limit (original behaviour) |
+| Any positive integer | Close tunnel after that many seconds |
+
+---
+
 ## Credits
 
 Thank you to all
