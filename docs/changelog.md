@@ -11,12 +11,12 @@
   disconnection by corporate proxies.
 
   Some corporate NTLM proxies enforce a maximum tunnel lifetime (typically around
-  30 minutes). When the proxy forcibly resets the tunnel, clients such as
-  GitHub Copilot and VS Code receive a hard connection error that they cannot
-  recover from without restarting Px. With `tunnel_lifetime` set slightly below
-  the corporate proxy's limit, Px tears down the upstream connection cleanly
-  before the forced reset occurs. Clients detect the closure, reconnect, and
-  re-authenticate through NTLM automatically — with no user intervention required.
+  30 minutes). When the proxy forcibly resets the tunnel, long-lived client
+  connections receive a hard error that Px cannot transparently recover from.
+  With `tunnel_lifetime` set slightly below the corporate proxy's limit, Px tears
+  down the upstream connection cleanly before the forced reset occurs. Clients
+  detect the closure, reconnect, and re-authenticate through NTLM automatically —
+  with no user intervention required.
 
   Set to `0` to disable (no lifetime limit, original behaviour).
 

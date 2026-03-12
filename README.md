@@ -142,9 +142,9 @@ so issues, forks and PRs are most appreciated. Join us on the
 ## Fork modification: `tunnel_lifetime`
 
 Some corporate NTLM proxies enforce a maximum lifetime on CONNECT tunnels
-(typically around 30 minutes). When the proxy forcibly resets the tunnel, clients
-such as GitHub Copilot and VS Code receive a connection error that they cannot
-recover from without manually restarting Px.
+(typically around 30 minutes). When the proxy forcibly resets the tunnel,
+long-lived client connections receive a hard error that Px cannot transparently
+recover from.
 
 This fork adds a `tunnel_lifetime` setting that causes Px to proactively close
 CONNECT tunnels before the corporate proxy does. Clients detect the clean closure,
