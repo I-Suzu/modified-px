@@ -138,18 +138,16 @@ build_binary() {
         mac)
             install_upx
             ensure_uv
-            PY=$(uv python find 3.13)
             uv pip install nuitka pymcurl -f "$WHEELS"
-            "$PY" tools.py --nuitka
-            "$PY" tools.py --depspkg
+            uv run python tools.py --nuitka
+            uv run python tools.py --depspkg
             ;;
         windows)
             install_upx
             ensure_uv
-            PY=$(uv python find 3.13)
             uv pip install pymcurl -f "$WHEELS"
-            "$PY" tools.py --embed
-            "$PY" tools.py --depspkg
+            uv run python tools.py --embed
+            uv run python tools.py --depspkg
             ;;
     esac
 }
