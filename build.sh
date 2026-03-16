@@ -214,11 +214,20 @@ test_binary() {
 
         ensure_uv
 
+        # Prefer container-native Python over uv-managed (glibc) Python
+        export UV_PYTHON_PREFERENCE=only-system
+        for pyver in cp314-cp314 cp313-cp313 cp312-cp312; do
+            if [ -d "/opt/python/${pyver}/bin" ]; then
+                export PATH="/opt/python/${pyver}/bin:$PATH"
+                break
+            fi
+        done
+
         # Run tests with tox in a venv
         uv venv /tmp/tox-env
         . /tmp/tox-env/bin/activate
         uv pip install tox tox-uv
-        PXBIN="$PXBIN" tox --installpkg "$PXWHEEL" \
+        PXBIN="$PXBIN" tox -e binary --installpkg "$PXWHEEL" \
             --override "tool.tox.env_run_base.install_command=uv pip install --no-index -f $WHEELS" \
             --workdir /tmp
     else
@@ -229,7 +238,7 @@ test_binary() {
             PYTEST_CMD="pytest -n 2 tests --ignore=tests/test_network.py"
         fi
         uv pip install tox tox-uv
-        PXBIN="$PXBIN" uv run tox --installpkg "$PXWHEEL" \
+        PXBIN="$PXBIN" uv run tox -e binary --installpkg "$PXWHEEL" \
             --override "tool.tox.env_run_base.install_command=uv pip install --no-index -f $WHEELS" \
             --override "tool.tox.env_run_base.commands=$PYTEST_CMD"
     fi

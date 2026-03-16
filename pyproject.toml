@@ -75,6 +75,7 @@ commands = [["pytest", "-n", "4", "tests"]]
 passenv = ["DBUS_SESSION_BUS_ADDRESS", "UV_PYTHON_PREFERENCE", "PX_CI_MINIMAL"]
 
 [tool.tox.env.binary]
+base_python = ["python3", "python"]
 passenv = ["PXBIN", "DBUS_SESSION_BUS_ADDRESS", "PX_CI_MINIMAL"]
 
 [tool.mypy]
