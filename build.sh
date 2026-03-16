@@ -214,8 +214,7 @@ test_binary() {
 
         ensure_uv
 
-        # Prefer container-native Python over uv-managed (glibc) Python
-        export UV_PYTHON_PREFERENCE=only-system
+        # Add container-native Python to PATH for binary tox env's base_python
         for pyver in cp314-cp314 cp313-cp313 cp312-cp312; do
             if [ -d "/opt/python/${pyver}/bin" ]; then
                 export PATH="/opt/python/${pyver}/bin:$PATH"
