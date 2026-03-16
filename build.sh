@@ -223,7 +223,7 @@ test_binary() {
         done
 
         # Run tests with tox in a venv
-        uv venv /tmp/tox-env
+        uv venv /tmp/tox-env --python python3
         . /tmp/tox-env/bin/activate
         uv pip install tox tox-uv
         PXBIN="$PXBIN" tox -e binary --installpkg "$PXWHEEL" \
