@@ -2,7 +2,7 @@
 
 ---
 
-## Fork modifications (based on v0.10.3)
+## v0.10.3-modified
 
 ### New features
 - Added `tunnel_lifetime` setting (`--tunnel_lifetime=` / `PX_TUNNEL_LIFETIME=` /
